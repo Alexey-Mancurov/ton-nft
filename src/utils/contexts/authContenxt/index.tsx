@@ -1,13 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { AuthData, AuthProviderProps, IAuthContext } from "./types";
 import { useRouter } from "next/router";
-import Cookies from "universal-cookie";
-import { AUTH_PAGE, ROOT_PAGE } from "@/utils/constants/routes";
-
-const cookies = new Cookies(null, { path: ROOT_PAGE });
-
-export const AUTH_COOKIES = "authHash";
-const WEEK_TIME = 60 * 60 * 24 * 7 * 1000;
+import { AUTH_PAGE } from "@/utils/routes";
+import sha256 from "crypto-js/sha256";
+import hmacSHA256 from "crypto-js/hmac-sha256";
 
 const AuthContext = createContext({});
 
@@ -16,22 +12,13 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [auth, setAuth] = useState<AuthData | null>();
 
   useEffect(() => {
-    const authData = getSearchParams(router.asPath);
+    const searchParams = new URLSearchParams(router.asPath.replace("/", ""));
+    const authData = getSearchParams(searchParams);
     setAuth(authData);
   }, [router]);
 
-  useEffect(() => {
-    if (auth?.hash) {
-      const expireTime =
-        (Number(auth?.auth_date) * 1000 || new Date().getTime()) + WEEK_TIME;
-
-      cookies.set(AUTH_COOKIES, auth.hash, { expires: new Date(expireTime) });
-    }
-  }, [auth]);
-
   const logout = () => {
     setAuth(null);
-    cookies.remove(AUTH_COOKIES);
     router.replace(AUTH_PAGE);
   };
 
@@ -50,9 +37,7 @@ const useAuth = () => {
   return { ...context } as IAuthContext;
 };
 
-function getSearchParams(asPath: string) {
-  const searchParams = new URLSearchParams(asPath.replace("/", ""));
-
+function getSearchParams(searchParams: URLSearchParams) {
   const id = Number(searchParams.get("id"));
   const first_name = searchParams.get("first_name");
   const last_name = searchParams.get("last_name");
@@ -64,4 +49,13 @@ function getSearchParams(asPath: string) {
   return { id, first_name, last_name, username, photo_url, auth_date, hash };
 }
 
-export { AuthProvider, useAuth };
+function checkValidityHash(auth: AuthData) {
+  const data_check_string = `auth_date=${auth.auth_date}\nfirst_name=${auth.first_name}\nid=${auth.id}\nlast_name=${auth.last_name}\nphoto_url=${auth.photo_url}\nusername=${auth.username}`;
+
+  const secret_key = sha256(process.env.BOT_TOKEN as string);
+  const hmacHash = hmacSHA256(data_check_string, secret_key);
+
+  return auth.hash === hmacHash.toString()
+}
+
+export { AuthProvider, useAuth, getSearchParams, checkValidityHash };

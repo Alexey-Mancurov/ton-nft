@@ -11,11 +11,11 @@ export interface AuthProviderProps {
 }
 
 export interface AuthData {
+  hash: string | null;
   id: number | null;
   first_name: string | null;
   last_name: string | null;
   username: string | null;
   photo_url: string | null;
   auth_date: number | null;
-  hash: string | null;
 }

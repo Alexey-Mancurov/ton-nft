@@ -10,12 +10,15 @@
   },
   "dependencies": {
     "@notionhq/client": "2.2.14",
+    "@ton/core": "0.56.1",
+    "@ton/crypto": "3.2.0",
+    "crypto-js": "4.2.0",
     "next": "14.1.2",
     "react": "18",
-    "react-dom": "18",
-    "universal-cookie": "7.1.0"
+    "react-dom": "18"
   },
   "devDependencies": {
+    "@types/crypto-js": "4.2.2",
     "@types/node": "20",
     "@types/react": "18",
     "@types/react-dom": "18",

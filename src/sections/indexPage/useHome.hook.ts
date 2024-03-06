@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AdaptedNftItem } from "./types";
-import { adaptedNftsData } from "./adaptedNftsData";
+import { NftItem } from '@/utils/api/ton/types';
+import { getNftsData } from '@/utils/api/ton';
 
 export const countsToFirstView = 5;
 
 export const useHome = (
   frendsAddresses: string[],
-  nftsData: AdaptedNftItem[]
+  nftsData: NftItem[]
 ) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -37,7 +37,7 @@ export const useHome = (
             nfts.length,
             countsToFirstView
           );
-          const nftsData = await adaptedNftsData(nextAddresses);
+          const nftsData = (await getNftsData(nextAddresses)).nft_items;
           setNfts([...nfts, ...nftsData]);
           setLoading(false);
         } catch (err) {

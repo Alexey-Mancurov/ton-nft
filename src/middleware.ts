@@ -1,19 +1,18 @@
 import type { NextRequest } from "next/server";
-import { AUTH_PAGE, ROOT_PAGE } from "./utils/constants/routes";
-import { AUTH_COOKIES } from './utils/contexts/authContenxt';
+import { AUTH_PAGE } from "./utils/routes";
+import {
+  checkValidityHash,
+  getSearchParams,
+} from "./utils/contexts/authContenxt";
 
 export function middleware(request: NextRequest) {
   const searchParams = new URLSearchParams(request.url.split("?")[1]);
 
-  const authHashCookies = request.cookies.get(AUTH_COOKIES)?.value;
+  const authData = getSearchParams(searchParams);
 
-  if (authHashCookies && request.nextUrl.pathname !== ROOT_PAGE) {
-    return Response.redirect(new URL(ROOT_PAGE, request.url));
-  }
+  const hashIsValid = checkValidityHash(authData);
 
-  const authHash = searchParams.get("hash");
-
-  if (!authHash && !authHashCookies) {
+  if (!hashIsValid) {
     return Response.redirect(new URL(AUTH_PAGE, request.url));
   }
 }
