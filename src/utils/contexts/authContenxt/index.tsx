@@ -7,6 +7,7 @@ import { AUTH_PAGE, ROOT_PAGE } from "@/utils/constants/routes";
 const cookies = new Cookies(null, { path: ROOT_PAGE });
 
 export const AUTH_COOKIES = "authHash";
+const WEEK_TIME = 60 * 60 * 24 * 7 * 1000;
 
 const AuthContext = createContext({});
 
@@ -19,19 +20,20 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuth(authData);
   }, [router]);
 
-  if (auth?.hash) {
-    const weekTime = 60 * 60 * 24 * 7 * 1000;
-    const expireTime =
-      (Number(auth?.auth_date) * 1000 || new Date().getTime()) + weekTime;
+  useEffect(() => {
+    if (auth?.hash) {
+      const expireTime =
+        (Number(auth?.auth_date) * 1000 || new Date().getTime()) + WEEK_TIME;
 
-    cookies.set(AUTH_COOKIES, auth.hash, { expires: new Date(expireTime) });
-  }
+      cookies.set(AUTH_COOKIES, auth.hash, { expires: new Date(expireTime) });
+    }
+  }, [auth]);
 
   const logout = () => {
     setAuth(null);
     cookies.remove(AUTH_COOKIES);
     router.replace(AUTH_PAGE);
-  }
+  };
 
   const value = { auth, setAuth, logout };
 

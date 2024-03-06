@@ -3,7 +3,7 @@ import { AUTH_PAGE, ROOT_PAGE } from "./utils/constants/routes";
 import { AUTH_COOKIES } from './utils/contexts/authContenxt';
 
 export function middleware(request: NextRequest) {
-  const searchParams = new URLSearchParams(`${request.url.split("?")[1]}`);
+  const searchParams = new URLSearchParams(request.url.split("?")[1]);
 
   const authHashCookies = request.cookies.get(AUTH_COOKIES)?.value;
 

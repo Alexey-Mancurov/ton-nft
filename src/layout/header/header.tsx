@@ -6,7 +6,7 @@ export const Header = () => {
 
   return (
     <div className={styles.header}>
-      <button onClick={logout}>Logout</button>
+      <button className={styles.logout} onClick={logout}>Logout</button>
     </div>
   );
 };
