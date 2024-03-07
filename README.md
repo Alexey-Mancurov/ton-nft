@@ -13,8 +13,13 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## File Structure
 Layout folder - contains components like Head, Header, etc.
+
 Pages folder - contains pages and main configuration files
+
 Sections folder - contains infrastructure files for pages
+
 Styles folder - contains main styles
+
 Utils folder - contains tools like api, contexts, routes, etc.
+
 middleware.ts - implements redirections
