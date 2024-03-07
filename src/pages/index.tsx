@@ -4,8 +4,9 @@ import { Header } from "@/layout/header/header";
 import { getTable } from "@/utils/api/notion";
 import { countsToFirstView, useHome } from "@/sections/indexPage/useHome.hook";
 import { Address } from "@ton/core";
-import { NftItem } from '@/utils/api/ton/types';
-import { getNftsData } from '@/utils/api/ton';
+import { NftItem } from "@/utils/api/ton/types";
+import { getNftsData } from "@/utils/api/ton";
+import { TableRowBlockObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 
 export interface HomeProps {
   frendsAddresses: string[];
@@ -32,7 +33,7 @@ export default function IndexPage({ frendsAddresses, nftsData }: HomeProps) {
               alt={nft.metadata.name}
             />
             <div>
-              NFT friendly address: 
+              NFT friendly address:
               {Address.parse(nft.address).toString()}
             </div>
             <div>NFT raw address: {nft.address}</div>
@@ -53,15 +54,21 @@ export default function IndexPage({ frendsAddresses, nftsData }: HomeProps) {
 }
 
 export async function getStaticProps() {
-  const nftTableRows = await getTable();
+  let nftTableRows: TableRowBlockObjectResponse[] = [];
+  let frendsAddresses: string[] = []
+  let nftsData: NftItem[] = []
+  try {
+    nftTableRows = await getTable();
+    frendsAddresses = nftTableRows.map(
+      (item) => item.table_row.cells[0][0].plain_text
+    );
 
-  const frendsAddresses = nftTableRows.map(
-    (item) => item.table_row.cells[0][0].plain_text
-  );
+    const firstAddresses = [...frendsAddresses].splice(0, countsToFirstView);
 
-  const firstAddresses = [...frendsAddresses].splice(0, countsToFirstView);
-
-  const nftsData = (await getNftsData(firstAddresses)).nft_items;
+    nftsData = (await getNftsData(firstAddresses)).nft_items;
+  } catch (err) {
+    console.error(err);
+  }
 
   return { props: { frendsAddresses, nftsData }, revalidate: 600 };
 }
