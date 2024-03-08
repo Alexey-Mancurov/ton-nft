@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { NftItem } from '@/utils/api/ton/types';
-import { getNftsData } from '@/utils/api/ton';
+import { NftItem } from "@/utils/api/ton/types";
+import { getNftsData } from "@/utils/api/ton";
+import { STATUS } from "@/utils/api/status";
 
 export const countsToFirstView = 5;
+export const timeForRerequest = 5000;
 
-export const useHome = (
-  frendsAddresses: string[],
-  nftsData: NftItem[]
-) => {
+export const useHome = (frendsAddresses: string[], nftsData: NftItem[]) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [page, setPage] = useState(1);
   const [nfts, setNfts] = useState(nftsData);
   const refLoader = useRef<HTMLDivElement>(null);
+  let refTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleObserver: IntersectionObserverCallback = useCallback(
     (entries) => {
@@ -23,6 +23,17 @@ export const useHome = (
     },
     []
   );
+
+  const setNewNfts = async (nextAddresses: string[]) => {
+    const nftsData = await getNftsData(nextAddresses);
+    if ("nft_items" in nftsData) {
+      setNfts([...nfts, ...nftsData.nft_items]);
+      setLoading(false);
+      return;
+    }
+
+    return nftsData;
+  };
 
   useEffect(() => {
     if (nfts.length >= frendsAddresses.length) {
@@ -37,15 +48,23 @@ export const useHome = (
             nfts.length,
             countsToFirstView
           );
-          const nftsData = (await getNftsData(nextAddresses)).nft_items;
-          setNfts([...nfts, ...nftsData]);
-          setLoading(false);
-        } catch (err) {
+
+          const nftsData = await setNewNfts(nextAddresses);
+          if (nftsData?.status === STATUS.TOO_MANY_REQUESTS) {
+            refTimeout.current = setTimeout(async () => {
+              await setNewNfts(nextAddresses);
+            }, timeForRerequest);
+          }
+        } catch {
           setLoading(false);
           setError(true);
         }
       })();
     }
+
+    return () => {
+      refTimeout.current && clearTimeout(refTimeout.current);
+    };
   }, [page]);
 
   useEffect(() => {

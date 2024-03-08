@@ -9,6 +9,8 @@ export interface NftItem {
   verified: boolean;
 }
 
+export type NftsData = { nft_items: NftItem[] }
+
 export interface Collection {
   address: string;
   description: string;

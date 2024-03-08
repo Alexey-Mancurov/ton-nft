@@ -55,8 +55,8 @@ export default function IndexPage({ frendsAddresses, nftsData }: HomeProps) {
 
 export async function getStaticProps() {
   let nftTableRows: TableRowBlockObjectResponse[] = [];
-  let frendsAddresses: string[] = []
-  let nftsData: NftItem[] = []
+  let frendsAddresses: string[] = [];
+  let nftsData: NftItem[] = [];
   try {
     nftTableRows = await getTable();
     frendsAddresses = nftTableRows.map(
@@ -65,7 +65,10 @@ export async function getStaticProps() {
 
     const firstAddresses = [...frendsAddresses].splice(0, countsToFirstView);
 
-    nftsData = (await getNftsData(firstAddresses)).nft_items;
+    const nftsList = await getNftsData(firstAddresses);
+    if ("nft_items" in nftsList) {
+      nftsData = nftsList.nft_items;
+    }
   } catch (err) {
     console.error(err);
   }
